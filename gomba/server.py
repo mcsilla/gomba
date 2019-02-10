@@ -1,30 +1,12 @@
 import json
 import redis
-from flask import Flask, make_response, abort
+from flask import Flask, make_response, abort, redirect
 app = Flask(__name__)
 
+@app.route('/')
 @app.route('/index.html')
 def content():
-    return '''
-<!doctype html>
-
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-
-    <title>Title</title>
-
-
-</head>
-
-<body>
-
-<img src="image/kucsma_cseh" alt="cseh kucsmagomba" />
-
-</body>
-</html>
-
-'''
+    return redirect("/mushrooms")
 
 @app.route('/image/<image_name>')
 def image_route(image_name):
@@ -36,16 +18,15 @@ def image_route(image_name):
     response.headers.set('Content-Type', 'image/jpeg')
     return response
 
-@app.route('/mushrooms')
+@app.route('/mushrooms', strict_slashes=False)
 def list_mushrooms():
-
     species_list = []
-    species_li_tags = [] 
-     
+#<a href="url">link text</a>
     redis_client = redis.StrictRedis()
-    for key in redis_client.keys(b'mushroom*'):
-        species_list.append('<li>' + json.loads(redis_client.get(key))['name']['hungarian'] + '</li>')
-        species_li_tags.append('<li>' + key.decode('utf8') + '</li>')
+    for key in redis_client.keys(b'mushroom_*'):
+        mushroom_name_hun = json.loads(redis_client.get(key))['name']['hungarian']
+        key_without_prefix = key[9:].decode('utf8')
+        species_list.append('<li> <a href="/mushrooms/' + key_without_prefix + '">' + mushroom_name_hun + '</a> </li>')
     species_list_str = '\n'.join(species_list)
 
     return f'''
