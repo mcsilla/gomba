@@ -5,9 +5,6 @@ app = Flask(__name__)
 
 @app.route('/index.html')
 def content():
-    redis_client = redis.StrictRedis()
-    image_bytes = redis_client.get("kucsma_cseh")
-    image_base64 = base64.b64encode(image_bytes).decode('utf8')
     return '''
 <!doctype html>
 
@@ -22,7 +19,7 @@ def content():
 
 <body>
 
-<img src="data:image/jpeg;base64,''' + image_base64 + '''" alt="Base 64 encoded!" />
+<img src="image/kucsma_cseh" alt="cseh kucsmagomba" />
 
 </body>
 </html>
@@ -38,6 +35,42 @@ def image_route(image_name):
     response = make_response(image_bytes)
     response.headers.set('Content-Type', 'image/jpeg')
     return response
+
+@app.route('/mushrooms')
+def list_mushrooms():
+    lista = '' 
+     
+    redis_client = redis.StrictRedis()
+    for key in redis_client.keys():
+        if key.startswith(b'mushroom'):
+            lista += '<li>' + key.decode('utf8') + '</li>'
+
+    return '''
+<!doctype html>
+
+<html lang="hu">
+<head>
+    <meta charset="utf-8">
+
+    <title>Tanulás</title>
+
+
+</head>
+
+<body>
+
+<h1>Gombák</h1>
+
+<ul>''' + lista + '''</ul>
+
+</body>
+</html>
+
+'''
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=2001, host='0.0.0.0')
