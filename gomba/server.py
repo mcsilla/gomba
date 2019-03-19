@@ -22,12 +22,15 @@ def image_route(image_name):
 
 @app.route('/mushrooms', strict_slashes=False)
 def list_mushrooms():
+    i = 1
     species_list = []
     redis_client = redis.StrictRedis()
-    for key in redis_client.keys(MUSHROOM_PREFIX + '*'):
-        mushroom_name_hun = json.loads(redis_client.get(key))['name']['hungarian']
-        key_without_prefix = key[len(MUSHROOM_PREFIX):].decode('utf8')
-        species_list.append('<li> <a href="/mushrooms/' + key_without_prefix + '">' + mushroom_name_hun + '</a> </li>')
+    index = json.loads(redis_client.get('index'))
+    for mushroom_name in index:
+        mushroom_name_prefix = 'mushroom_' + mushroom_name
+        mushroom_name_hun = json.loads(redis_client.get(mushroom_name_prefix))['name']['hungarian']
+        species_list.append('<li> <a href="/mushrooms/' + mushroom_name + '">' + str(i) + '. ' + mushroom_name_hun + '</a> </li>')
+        i = i + 1
     species_list_str = '\n'.join(species_list)
 
     return f'''
