@@ -54,6 +54,28 @@ def list_mushrooms():
 def mushroom_route(mushroom_key):
     redis_client = redis.StrictRedis()
     mushroom_data = redis_client.get(MUSHROOM_PREFIX + mushroom_key)
+    index = json.loads(redis_client.get('index'))
+    akt_index = 0
+    next_mushroom = index[0]
+    prev_mushroom = index[219]
+    for mushroom in index:
+        if mushroom == mushroom_key:
+            if akt_index > 0 and akt_index < 219:
+                next_mushroom = index[akt_index + 1]
+                prev_mushroom = index[akt_index - 1]
+            
+            if akt_index == 0:
+                next_mushroom = index[akt_index + 1]
+                prev_mushroom = index[219]
+                
+            if akt_index == 219:
+                next_mushroom = index[0]
+                prev_mushroom = index[akt_index - 1]
+          
+        akt_index = akt_index + 1
+            
+            
+            
     if mushroom_data is None:
         abort(404)
     image_name = json.loads(mushroom_data)['images'][0]
@@ -69,7 +91,10 @@ def mushroom_route(mushroom_key):
 </head>
 <body>
     <h1>{mushroom_name_hun} ({mushroom_name_lat})</h1>
-    <img src="/image/{image_name}" alt="mushroom_name_hun"/>
+    <img src="/image/{image_name}" alt="mushroom_name_hun" height="500"/>
+    <a href="/mushrooms/{next_mushroom}">Következő</a>
+    <a href="/mushrooms/{prev_mushroom}">Előző</a>
+    <a href="/mushrooms">Gombák listája</a>
 </body>
 </html>
 
